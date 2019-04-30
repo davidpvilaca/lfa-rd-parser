@@ -4,19 +4,12 @@ import java.util.ArrayList;
 
 abstract class Parser {
 
-    protected final ArrayList<Character> symbols;
     protected Character symbol;
-    protected String tokens;
+    private String tokens;
     private int index = 0;
 
-    public Parser(ArrayList<Character> symbols) {
-        ArrayList<Character> _arr = (ArrayList<Character>) symbols.clone();
-        _arr.replaceAll(c -> new Character(Character.toLowerCase(c)));
-        this.symbols = _arr;
-    }
-
     protected boolean accept(Character s) {
-        return this.symbols.contains(s);
+        return this.symbol == s;
     }
 
     protected boolean expect(char s) {
@@ -27,12 +20,32 @@ abstract class Parser {
     }
 
     protected void next() {
-        this.symbol = this.tokens.charAt(this.index);
+        if (!this.endOfTokens()) {
+            this.symbol = this.tokens.charAt(this.index++);
+            if (this.symbol == ' ') {
+                this.next();
+            }
+        } else {
+            this.index = -1;
+            this.symbol = null;
+        }
     }
 
-    public void setTokens(String tokens) {
+    protected boolean endOfTokens() {
+        return this.index >= this.tokens.length();
+    }
+
+    protected void reset() {
+        this.index = 0;
+    }
+
+    protected void setTokens(String tokens) {
         this.tokens = tokens;
         this.next();
+    }
+
+    protected String getTokens() {
+        return this.tokens;
     }
 
 }
