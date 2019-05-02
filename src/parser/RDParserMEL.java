@@ -1,7 +1,5 @@
 package parser;
 
-import org.jetbrains.annotations.Contract;
-
 import java.util.*;
 
 enum ETypeSymbol {
@@ -41,14 +39,14 @@ public class RDParserMEL extends Parser {
         super();
     }
 
-    public void parse(String tokens) {
+    public double parse(String tokens) {
         this.reset();
         this.setTokens(tokens);
         this.expr();
         if (this.symbol != null) {
             throw new Error("Not accept tokens");
         }
-        this.process();
+        return this.process();
     }
 
     public void expr() {
@@ -188,18 +186,43 @@ public class RDParserMEL extends Parser {
     }
 
     private double process() {
-        double result = 0;
-        Stack<Symbol> stack = this.getStack();
+        Character[] operations = { '^', '(', '*', '/', '%', '+', '-' };
         Symbol n1, n2, op;
+        boolean isEnd = false;
+        boolean hasOp, isIntDiv;
+        int opIndex = 0;
+        double result;
 
-        while (stack.size() > 1) {
-            n1 = stack.pop();
-            op = stack.pop();
-            n2 = stack.pop();
-            result += this.calc(n1.token, op.token.charAt(0), n2.token);
+        while (!isEnd) {
+            hasOp = false;
+            for (int i = 0; i < this.processList.size(); i++) {
+                op = this.processList.get(i);
+                if (op.type == ETypeSymbol.OPERATOR && op.token.charAt(0) == operations[opIndex]) {
+                    hasOp = true;
+                    n1 = this.processList.get(i-1);
+                    n2 = this.processList.get(i+1);
+                    isIntDiv = n2.token.charAt(0) == '/';
+                    if (isIntDiv) {
+                        n2 = this.processList.get(i+2);
+                        this.processList.remove(i+1);
+                    }
+                    this.processList.remove(i-1);
+                    this.processList.remove(i-1);
+                    this.processList.remove(i-1);
+                    result = this.calc(n1.token, op.token.charAt(0), n2.token);
+                    if (isIntDiv) {
+                        result = (int) result;
+                    }
+                    this.processList.add(i-1, new Symbol(Double.toString(result),ETypeSymbol.NUMBER)
+                    );
+                }
+            }
+            isEnd = this.processList.size() < 2 || opIndex >= operations.length;
+            if (!hasOp) {
+                opIndex++;
+            }
         }
-
-        return result;
+        return Double.parseDouble(this.processList.get(0).token);
     }
 
     private double calc(String n1, Character operator, String n2) {
@@ -221,15 +244,6 @@ public class RDParserMEL extends Parser {
             default:
                 throw new Error("Error on calc: Operator not valid");
         }
-    }
-
-    private Stack<Symbol> getStack() {
-        Character[] maxPrecedence = { '^' };
-        Character[] midPrecedence = { '*', '/', '%' };
-        Character[] lowPrecedence = { '+', '-' };
-        Stack<Symbol> stack = new Stack<>();
-
-        return stack;
     }
 
 }
