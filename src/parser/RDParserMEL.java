@@ -46,7 +46,7 @@ public class RDParserMEL extends Parser {
         if (this.symbol != null) {
             throw new Error("Not accept tokens");
         }
-        return this.process();
+        return this.process(this.processList);
     }
 
     public void expr() {
@@ -185,44 +185,74 @@ public class RDParserMEL extends Parser {
         }
     }
 
-    private double process() {
-        Character[] operations = { '^', '(', '*', '/', '%', '+', '-' };
-        Symbol n1, n2, op;
+    private double process(ArrayList<Symbol> list) {
+        ArrayList<Symbol> _list = (ArrayList<Symbol>) list.clone();
+        Character[] operations = { '(', '^', '*', '/', '%', '-', '+' };
+        Symbol op;
         boolean isEnd = false;
-        boolean hasOp, isIntDiv;
+        boolean hasOp;
         int opIndex = 0;
-        double result;
 
         while (!isEnd) {
             hasOp = false;
-            for (int i = 0; i < this.processList.size(); i++) {
-                op = this.processList.get(i);
+            for (int i = 0; i < _list.size(); i++) {
+                op = _list.get(i);
                 if (op.type == ETypeSymbol.OPERATOR && op.token.charAt(0) == operations[opIndex]) {
                     hasOp = true;
-                    n1 = this.processList.get(i-1);
-                    n2 = this.processList.get(i+1);
-                    isIntDiv = n2.token.charAt(0) == '/';
-                    if (isIntDiv) {
-                        n2 = this.processList.get(i+2);
-                        this.processList.remove(i+1);
+                    _list = this.processOne(_list, i);
+                } else if (op.type == ETypeSymbol.PAREN_L) {
+                    hasOp = true;
+                    _list.remove(i);
+                    ArrayList<Symbol> sub = new ArrayList<>();
+                    Symbol symb = _list.get(i);
+                    int countParenL = 0;
+                    while (symb.type != ETypeSymbol.PAREN_R || countParenL > 0) {
+                        sub.add(symb);
+                        _list.remove(i);
+                        symb = _list.get(i);
+                        if(symb.type == ETypeSymbol.PAREN_L) {
+                            countParenL++;
+                        } else if (symb.type == ETypeSymbol.PAREN_R && countParenL > 0) {
+                            countParenL--;
+                            sub.add(symb);
+                            _list.remove(i);
+                        }
                     }
-                    this.processList.remove(i-1);
-                    this.processList.remove(i-1);
-                    this.processList.remove(i-1);
-                    result = this.calc(n1.token, op.token.charAt(0), n2.token);
-                    if (isIntDiv) {
-                        result = (int) result;
-                    }
-                    this.processList.add(i-1, new Symbol(Double.toString(result),ETypeSymbol.NUMBER)
-                    );
+                     _list.remove(i);
+                    symb = new Symbol(Double.toString(this.process(sub)), ETypeSymbol.NUMBER);
+                    _list.add(i, symb);
                 }
             }
-            isEnd = this.processList.size() < 2 || opIndex >= operations.length;
+            isEnd = _list.size() < 2 || opIndex >= operations.length;
             if (!hasOp) {
                 opIndex++;
             }
         }
-        return Double.parseDouble(this.processList.get(0).token);
+        return Double.parseDouble(_list.get(0).token);
+    }
+
+    private ArrayList<Symbol> processOne(ArrayList<Symbol> symbols, int i) {
+        ArrayList<Symbol> _list = (ArrayList<Symbol>)symbols.clone();
+        Symbol n1, n2, op;
+        boolean isIntDiv;
+        double result;
+        op = _list.get(i);
+        n1 = _list.get(i-1);
+        n2 = _list.get(i+1);
+        isIntDiv = n2.token.charAt(0) == '/';
+        if (isIntDiv) {
+            n2 = _list.get(i+2);
+            _list.remove(i+1);
+        }
+        _list.remove(i-1);
+        _list.remove(i-1);
+        _list.remove(i-1);
+        result = this.calc(n1.token, op.token.charAt(0), n2.token);
+        if (isIntDiv) {
+            result = (int) result;
+        }
+        _list.add(i-1, new Symbol(Double.toString(result),ETypeSymbol.NUMBER));
+        return _list;
     }
 
     private double calc(String n1, Character operator, String n2) {
