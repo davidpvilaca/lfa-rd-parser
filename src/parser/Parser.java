@@ -12,7 +12,7 @@ abstract class Parser {
      * @return actual character is s
      */
     protected boolean accept(char s) {
-        return this.symbol == s;
+        return this.symbol != null && this.symbol == s;
     }
 
     /**
@@ -21,7 +21,7 @@ abstract class Parser {
     protected void next() {
         if (!this.endOfTokens()) {
             this.symbol = this.tokens.charAt(this.index++);
-            if (this.symbol == ' ') {
+            while (this.symbol == ' ') {
                 this.next();
             }
         } else {
