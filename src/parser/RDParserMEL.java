@@ -2,6 +2,10 @@ package parser;
 
 import java.util.*;
 
+/**
+ * ENUM for type of symbol
+ * to process list
+ */
 enum ETypeSymbol {
     OPERATOR,
     NUMBER,
@@ -11,7 +15,13 @@ enum ETypeSymbol {
     PAREN_R
 }
 
+/**
+ * Symbol class to process list
+ */
 class Symbol {
+    /**
+     * Char or String expression number (example: 1, 1.1, 100.1)
+     */
     public String token;
     public final ETypeSymbol type;
 
@@ -33,12 +43,18 @@ class Symbol {
 
 public class RDParserMEL extends Parser {
 
+    // to calculate the result of the analyzed expression
     private ArrayList<Symbol> processList = new ArrayList<>();
 
     public RDParserMEL() {
         super();
     }
 
+    /**
+     * to validate input tokens and calculate the result of expression
+     * @param tokens expression
+     * @return result
+     */
     public double parse(String tokens) {
         this.reset();
         this.setTokens(tokens);
@@ -49,16 +65,25 @@ public class RDParserMEL extends Parser {
         return this.process(this.processList);
     }
 
-    public void expr() {
+    /**
+     * expression
+     */
+    private void expr() {
         this.term();
         this.manyTerm();
     }
 
-    public void term() {
+    /**
+     * term expression
+     */
+    private void term() {
         this.factor();
         this.manyFactor();
     }
 
+    /**
+     * validate all terms in sequence
+     */
     private void manyTerm() {
         while (true) {
             try {
@@ -75,7 +100,10 @@ public class RDParserMEL extends Parser {
         }
     }
 
-    public void factor() {
+    /**
+     * factor expression
+     */
+    private void factor() {
         this.base();
         if (this.expect('^')) {
             this.putSymbol(ETypeSymbol.OPERATOR);
@@ -84,6 +112,9 @@ public class RDParserMEL extends Parser {
         }
     }
 
+    /**
+     * validate all factors in sequence
+     */
     private void manyFactor() {
         Character[] terms = { '*', '/', '%' };
         while (true) {
@@ -105,7 +136,10 @@ public class RDParserMEL extends Parser {
         }
     }
 
-    public void base() {
+    /**
+     * base expression
+     */
+    private void base() {
         if (this.expectSumSub()) {
             this.putSymbol(ETypeSymbol.OPERATOR);
             this.next();
@@ -129,7 +163,10 @@ public class RDParserMEL extends Parser {
         throw new Error("Invalid base");
     }
 
-    public void number() {
+    /**
+     * number expression
+     */
+    private void number() {
         this.digit();
         this.manyDigits();
         if (this.expect('.')) {
@@ -149,7 +186,10 @@ public class RDParserMEL extends Parser {
         }
     }
 
-    public void digit() {
+    /**
+     * digit expression
+     */
+    private void digit() {
         Character[] digits = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
         boolean contains = Arrays.asList(digits).contains(this.symbol);
         if (contains) {
@@ -160,6 +200,9 @@ public class RDParserMEL extends Parser {
         }
     }
 
+    /**
+     * validate all digits in sequence
+     */
     private void manyDigits() {
         while (true) {
             try {
@@ -170,10 +213,18 @@ public class RDParserMEL extends Parser {
         }
     }
 
+    /**
+     * validate if atual char is plus or less
+     * @return true if has '+' or '-'
+     */
     private boolean expectSumSub() {
         return this.expect('+') || this.expect('-');
     }
 
+    /**
+     * add symbol instance on process list
+     * @param type type of symbol
+     */
     private void putSymbol(ETypeSymbol type) {
         Symbol s = this.processList.isEmpty() ? null : this.processList.get(this.processList.size() - 1);
         boolean sIsNumber = s != null && (s.type == ETypeSymbol.NUMBER || s.type == ETypeSymbol.EULER);
@@ -185,6 +236,12 @@ public class RDParserMEL extends Parser {
         }
     }
 
+    /**
+     * scroll through the list filled in parser validation
+     * and calculate the result of the expression
+     * @param list symbol list
+     * @return result
+     */
     private double process(ArrayList<Symbol> list) {
         ArrayList<Symbol> _list = (ArrayList<Symbol>) list.clone();
         Character[] operations = { '(', '^', '*', '/', '%', '-', '+' };
@@ -232,6 +289,12 @@ public class RDParserMEL extends Parser {
         return Double.parseDouble(_list.get(0).token);
     }
 
+    /**
+     * process first expression of symbol list from index (example: "1 + 1")
+     * @param symbols symbol list
+     * @param i index
+     * @return result symbol
+     */
     private ArrayList<Symbol> processOne(ArrayList<Symbol> symbols, int i) {
         ArrayList<Symbol> _list = (ArrayList<Symbol>)symbols.clone();
         Symbol n1, n2, op;
@@ -249,13 +312,20 @@ public class RDParserMEL extends Parser {
         _list.remove(i-1);
         _list.remove(i-1);
         result = this.calc(n1.token, op.token.charAt(0), n2.token);
-        if (isIntDiv) {
+            if (isIntDiv) {
             result = (int) result;
         }
         _list.add(i-1, new Symbol(Double.toString(result),ETypeSymbol.NUMBER));
         return _list;
     }
 
+    /**
+     * to calculate result of operation from n1 on n2
+     * @param n1 expression (token of symbol with NUMBER type)
+     * @param operator token of symbol wuth OPERATOR type
+     * @param n2 expression (token of symbol with NUMBER type)
+     * @return result
+     */
     private double calc(String n1, Character operator, String n2) {
         double _n1 = Double.parseDouble(n1);
         double _n2 = Double.parseDouble(n2);

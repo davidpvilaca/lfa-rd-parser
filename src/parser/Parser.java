@@ -1,7 +1,5 @@
 package parser;
 
-import java.util.ArrayList;
-
 abstract class Parser {
 
     protected Character symbol;
