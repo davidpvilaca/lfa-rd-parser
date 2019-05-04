@@ -6,17 +6,18 @@ abstract class Parser {
     private String tokens;
     private int index = 0;
 
-    protected boolean accept(Character s) {
+    /**
+     * accept char
+     * @param s expected char
+     * @return actual character is s
+     */
+    protected boolean accept(char s) {
         return this.symbol == s;
     }
 
-    protected boolean expect(char s) {
-        if (this.accept(s)) {
-            return true;
-        }
-        return false;
-    }
-
+    /**
+     * next char of tokens
+     */
     protected void next() {
         if (!this.endOfTokens()) {
             this.symbol = this.tokens.charAt(this.index++);
@@ -29,19 +30,34 @@ abstract class Parser {
         }
     }
 
+    /**
+     * ran the entire string of tokens
+     * @return not has next char
+     */
     protected boolean endOfTokens() {
         return this.index >= this.tokens.length();
     }
 
+    /**
+     * reset index to scroll tokens
+     */
     protected void reset() {
         this.index = 0;
     }
 
+    /**
+     * set tokens
+     * @param tokens string expression
+     */
     protected void setTokens(String tokens) {
         this.tokens = tokens;
         this.next();
     }
 
+    /**
+     * get string expression tokens
+     * @return string expression
+     */
     protected String getTokens() {
         return this.tokens;
     }

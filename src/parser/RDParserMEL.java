@@ -87,7 +87,7 @@ public class RDParserMEL extends Parser {
     private void manyTerm() {
         while (true) {
             try {
-                if (this.expectSumSub()) {
+                if (this.acceptSumSub()) {
                     this.putSymbol(ETypeSymbol.OPERATOR);
                     this.next();
                     this.term();
@@ -105,7 +105,7 @@ public class RDParserMEL extends Parser {
      */
     private void factor() {
         this.base();
-        if (this.expect('^')) {
+        if (this.accept('^')) {
             this.putSymbol(ETypeSymbol.OPERATOR);
             this.next();
             this.factor();
@@ -122,7 +122,7 @@ public class RDParserMEL extends Parser {
                 if (Arrays.asList(terms).contains(this.symbol)) {
                     this.putSymbol(ETypeSymbol.OPERATOR);
                     this.next();
-                    if (this.expect('/')) {
+                    if (this.accept('/')) {
                         this.putSymbol(ETypeSymbol.OPERATOR);
                         this.next();
                     }
@@ -140,7 +140,7 @@ public class RDParserMEL extends Parser {
      * base expression
      */
     private void base() {
-        if (this.expectSumSub()) {
+        if (this.acceptSumSub()) {
             this.putSymbol(ETypeSymbol.OPERATOR);
             this.next();
             this.base();
@@ -150,11 +150,11 @@ public class RDParserMEL extends Parser {
             this.number();
             return;
         } catch (Error e) { }
-        if (this.expect('(')) {
+        if (this.accept('(')) {
             this.putSymbol(ETypeSymbol.PAREN_L);
             this.next();
             this.expr();
-            if (this.expect(')')) {
+            if (this.accept(')')) {
                 this.putSymbol(ETypeSymbol.PAREN_R);
                 this.next();
                 return;
@@ -169,15 +169,15 @@ public class RDParserMEL extends Parser {
     private void number() {
         this.digit();
         this.manyDigits();
-        if (this.expect('.')) {
+        if (this.accept('.')) {
             this.putSymbol(ETypeSymbol.DOT);
             this.next();
             this.manyDigits();
         }
-        if (this.expect('E') || this.expect('e')) {
+        if (this.accept('E') || this.accept('e')) {
             this.putSymbol(ETypeSymbol.EULER);
             this.next();
-            if (this.expectSumSub()) {
+            if (this.acceptSumSub()) {
                 this.putSymbol(ETypeSymbol.OPERATOR);
                 this.next();
             }
@@ -214,11 +214,11 @@ public class RDParserMEL extends Parser {
     }
 
     /**
-     * validate if atual char is plus or less
+     * validate if actual char is plus or less
      * @return true if has '+' or '-'
      */
-    private boolean expectSumSub() {
-        return this.expect('+') || this.expect('-');
+    private boolean acceptSumSub() {
+        return this.accept('+') || this.accept('-');
     }
 
     /**
