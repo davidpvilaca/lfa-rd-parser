@@ -205,7 +205,7 @@ public class RDParserMEL extends Parser {
                     _list.remove(i);
                     ArrayList<Symbol> sub = new ArrayList<>();
                     Symbol symb = _list.get(i);
-                    int countParenL = 0;
+                    int countParenL = symb.type == ETypeSymbol.PAREN_L ? 1 : 0;
                     while (symb.type != ETypeSymbol.PAREN_R || countParenL > 0) {
                         sub.add(symb);
                         _list.remove(i);
@@ -216,6 +216,7 @@ public class RDParserMEL extends Parser {
                             countParenL--;
                             sub.add(symb);
                             _list.remove(i);
+                            symb = _list.get(i);
                         }
                     }
                      _list.remove(i);
