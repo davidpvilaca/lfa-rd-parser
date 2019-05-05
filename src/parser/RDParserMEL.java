@@ -243,6 +243,7 @@ public class RDParserMEL extends Parser {
      * @return result
      */
     private double process(ArrayList<Symbol> list) {
+        @SuppressWarnings (value="unchecked")
         ArrayList<Symbol> _list = (ArrayList<Symbol>) list.clone();
         Character[] operations = { '(', '^', '*', '/', '%', '-', '+' };
         Symbol op;
@@ -296,6 +297,7 @@ public class RDParserMEL extends Parser {
      * @return result symbol
      */
     private ArrayList<Symbol> processOne(ArrayList<Symbol> symbols, int i) {
+        @SuppressWarnings (value="unchecked")
         ArrayList<Symbol> _list = (ArrayList<Symbol>)symbols.clone();
         Symbol n1, n2, op;
         boolean isIntDiv;
